@@ -44,8 +44,8 @@ const StudentList = () => {
   const page = useSelector((state) => state.student.page);
   const handleColumnData = async (data) => {
     let newColumns;
-    if (valueTab === "addTab") {
-      newColumns = [...page.columns, data];
+    if (valueTab === "addTab" || data.isAdd) {
+      newColumns = [...page.columns, { ...data, isAdd: true }];
     } else {
       newColumns = [...page.columns];
       newColumns[valueTab - 1] = data;
@@ -140,6 +140,7 @@ const StudentList = () => {
                   <TabList onChange={handleChange}>
                     {page.columns.map((tab, index) => (
                       <Tab
+                        icon={tab.isAdd && <ControlPointIcon />}
                         label={`Column ${index + 1}`}
                         value={index + 1}
                         key={index}
@@ -230,7 +231,7 @@ const ColumnForm = ({ data, option, setColumn, selectField }) => {
               ))}
             </Select>
           </Box>
-        ) : (
+        ) : input === "isAdd" ? null : (
           <Box
             mb={2}
             style={{ display: "flex", alignItems: "center" }}

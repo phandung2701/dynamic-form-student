@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { Button, TextField } from "@material-ui/core";
@@ -8,7 +8,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import SettingsIcon from "@mui/icons-material/Settings";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   FormControlLabel,
   RadioGroup,
@@ -23,7 +23,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ModalSetting from "../Modal/ModalSetting";
 import { Box, Grid } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { createStudent } from "../../api/studentRequest";
+import { createStudent, getInfo } from "../../api/studentRequest";
 
 const Form = () => {
   const [open, setOpen] = useState(false);
@@ -110,7 +110,11 @@ const Form = () => {
       }
     }
   };
+
   const form = useSelector((state) => state.pages.form);
+  const initialState = form.input.reduce((acc, cur) => {
+    return { ...acc, [cur.name]: "" };
+  }, {});
   const validationSchema = yup.object({
     firstName: yup
       .string("Enter your firstName")
@@ -119,9 +123,28 @@ const Form = () => {
       .string("Enter your LastName")
       .required("LastName is required"),
   });
-  const initialState = form.input.reduce((acc, cur) => {
-    return { ...acc, [cur.name]: "s" };
-  }, {});
+  const { id } = useParams();
+
+  const pathLocation = window.location.pathname;
+
+  // const handelInitialState = async () => {
+  //   if (!id) {
+  //     const initialState = form.input.reduce((acc, cur) => {
+  //       return { ...acc, [cur.name]: "" };
+  //     }, {});
+  //   } else {
+  //     const param = pathLocation.split("/")[1];
+  //     const result = await getInfo(`${param}/${id}`);
+  //     const newInitialState = form.input.reduce((acc, cur) => {
+  //       return { ...acc, [cur.name]: result[cur.name] };
+  //     }, {});
+  //     setInitialState(newInitialState);
+  //   }
+
+  //   return initialState;
+  // };
+  // handelInitialState();
+  // console.log(initialState);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();

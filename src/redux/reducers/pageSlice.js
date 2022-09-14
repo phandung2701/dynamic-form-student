@@ -5,6 +5,8 @@ const pageSlice = createSlice({
   initialState: {
     page: [],
     form: {},
+    previewForm: [],
+    previewTable: [],
   },
   reducers: {
     getPage: (state, action) => {
@@ -13,9 +15,16 @@ const pageSlice = createSlice({
     setForm: (state, action) => {
       return { ...state, form: action.payload };
     },
+    setPreviewForm: (state, action) => {
+      return { ...state, previewForm: action.payload };
+    },
+    setPreviewTable: (state, action) => {
+      return { ...state, previewTable: action.payload };
+    },
   },
   extraReducers: {},
 });
 
 export const { reducer: pageReducer } = pageSlice;
-export const { getPage, setForm } = pageSlice.actions;
+export const { getPage, setForm, setPreviewForm, setPreviewTable } =
+  pageSlice.actions;

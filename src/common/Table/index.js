@@ -1,18 +1,14 @@
 import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+
 import SettingsIcon from "@mui/icons-material/Settings";
 
 const Table = (props) => {
-  const { rows, columns, setList, list, form, id, deleteItem, onSetting } =
-    props;
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const { rows, columns, setList, list, deleteItem, onSetting } = props;
+
   const handleClick = (row) => {
     setList(row);
   };

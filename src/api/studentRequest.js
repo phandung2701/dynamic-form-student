@@ -31,3 +31,8 @@ export const updatePageStudent = async (id, dispatch) => {
 
   dispatch(getPage(updatePage));
 };
+
+export const getInfo = async (param) => {
+  const info = await axiosClient.get(`${param}`);
+  return info;
+};

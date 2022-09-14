@@ -22,6 +22,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import MoveToInboxIcon from "@mui/icons-material/MoveToInbox";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import MailIcon from "@mui/icons-material/Mail";
 import { useSelector } from "react-redux";
 
@@ -115,7 +116,11 @@ const Layout = () => {
       console.log(e);
     }
   };
-
+  const handleCreatePage = (text) => {
+    if (text === "Create Page") {
+      navigate("/createPage");
+    }
+  };
   useEffect(() => {
     const getLayout = async () => {
       data = await getLayoutPage(dispatch);
@@ -191,7 +196,7 @@ const Layout = () => {
           </List>
           <Divider />
           <List>
-            {["All mail", "Trash", "Spam"].map((text, index) => (
+            {["Create Page"].map((text, index) => (
               <ListItem key={text} disablePadding sx={{ display: "block" }}>
                 <ListItemButton
                   sx={{
@@ -199,6 +204,7 @@ const Layout = () => {
                     justifyContent: open ? "initial" : "center",
                     px: 2.5,
                   }}
+                  onClick={() => handleCreatePage(text)}
                 >
                   <ListItemIcon
                     sx={{
@@ -207,7 +213,7 @@ const Layout = () => {
                       justifyContent: "center",
                     }}
                   >
-                    {index % 2 === 0 ? <MoveToInboxIcon /> : <MailIcon />}
+                    {index % 2 === 0 ? <AddCircleOutlineIcon /> : <MailIcon />}
                   </ListItemIcon>
                   <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
