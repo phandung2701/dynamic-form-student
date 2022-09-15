@@ -1,36 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Divider,
-  FormControlLabel,
   Grid,
   IconButton,
   Input,
   InputLabel,
   MenuItem,
   Select,
-  Switch,
   Tooltip,
-  Typography,
 } from "@mui/material";
 
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import DeleteIcon from "@mui/icons-material/Delete";
 import React from "react";
 
 const CardColumn = ({ data, onDelete, position, field, setValue }) => {
   const [cardValue, setCardValue] = useState({
     id: data.id,
-    field: "",
-    width: 100,
-    headerName: "",
+    field: data.field ?? "",
+    width: data.width ?? "",
+    headerName: data.headerName ?? "",
   });
   const handleSetValue = (e, name) => {
     const data = { ...cardValue, [name]: e.target.value };
     setCardValue(data);
     setValue(data);
   };
+  useEffect(() => {
+    setCardValue(data);
+  }, []);
   return (
     <>
       <Grid container spacing={2} mt={1}>
@@ -54,11 +52,12 @@ const CardColumn = ({ data, onDelete, position, field, setValue }) => {
                       value={cardValue.field}
                       onChange={(e) => handleSetValue(e, "field")}
                     >
-                      {field.map((item, index) => (
-                        <MenuItem key={index} value={item}>
-                          {item}
-                        </MenuItem>
-                      ))}
+                      {field &&
+                        field.map((item, index) => (
+                          <MenuItem key={index} value={item}>
+                            {item}
+                          </MenuItem>
+                        ))}
                     </Select>
                   </Grid>
                   <Grid item xs={4}>

@@ -1,48 +1,27 @@
 [
   {
-    "name": "firstName",
-    "label": "First Name",
-    "typeInput": "Input",
-    "typeData": "text"
-  },
-  {
-    "name": "lastName",
-    "label": "Last Name",
-    "typeInput": "Input",
-    "typeData": "text"
-  },
-  {
-    "name": "address",
-    "label": "Address",
-    "typeInput": "Input",
-    "typeData": "text"
-  },
-  {
-    "name": "birthDay",
-    "label": "Birth Day",
-    "typeInput": "Datepicker",
-    "typeData": "text"
-  },
-  {
-    "name": "class",
-    "label": "Class",
-    "typeInput": "Select",
-    "typeData": "text",
-    "option": [
-      { "value": "61TH3", "label": "61TH3" },
-      { "value": "61TH4", "label": "61TH4" },
-      { "value": "61TH5", "label": "61TH5" }
+    "id": "1902920338354",
+    "name": "student",
+    "attribute": [
+      "id",
+      "firstName",
+      "lastname",
+      "gender",
+      "birthDay",
+      "address",
+      "classStudent"
     ]
   },
   {
-    "name": "gender",
-    "label": "Gender",
-    "typeInput": "Radio",
-    "typeData": "text",
-    "option": [
-      { "checked": "false", "label": "Female", "value": "female" },
-      { "checked": "false", "label": "Male", "value": "male" },
-      { "checked": "false", "label": "Other", "value": "other" }
+    "id": "190292033829",
+    "name": "teacher",
+    "attribute": [
+      "id",
+      "firstName",
+      "lastname",
+      "gender",
+      "birthDay",
+      "address"
     ]
   }
 ]

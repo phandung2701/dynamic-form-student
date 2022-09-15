@@ -7,7 +7,7 @@ import Tooltip from "@mui/material/Tooltip";
 import SettingsIcon from "@mui/icons-material/Settings";
 
 const Table = (props) => {
-  const { rows, columns, setList, list, deleteItem, onSetting } = props;
+  const { rows, columns, setList, list, deleteItem } = props;
 
   const handleClick = (row) => {
     setList(row);
@@ -49,7 +49,7 @@ const Table = (props) => {
             zIndex: 1,
           }}
         >
-          <IconButton onClick={() => onSetting(true)}>
+          <IconButton>
             <SettingsIcon
               style={{
                 fontSize: "23px",
@@ -59,15 +59,17 @@ const Table = (props) => {
         </Tooltip>
 
         <div style={{ height: 500, width: "100%" }}>
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            pageSize={7}
-            autoHeight={true}
-            rowsPerPageOptions={[5]}
-            checkboxSelection
-            onSelectionModelChange={handleClick}
-          />
+          {columns && (
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              pageSize={7}
+              autoHeight={true}
+              rowsPerPageOptions={[5]}
+              checkboxSelection
+              onSelectionModelChange={handleClick}
+            />
+          )}
         </div>
       </div>
     </div>

@@ -1,22 +1,25 @@
 import {
-  Divider,
   Grid,
-  MenuItem,
-  Select,
   IconButton,
   Typography,
   Tooltip,
   Stack,
   Button,
+  FormGroup,
+  InputLabel,
+  Input,
 } from "@mui/material";
-import { borderLeft, Box } from "@mui/system";
-import React, { useState } from "react";
+import { Box } from "@mui/system";
+import React, { useEffect, useState } from "react";
 import CardColumn from "./CardColumn";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { v4 as uuidv4 } from "uuid";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { setPreviewTable } from "../../../../redux/reducers/pageSlice";
+
+import { updateTablePage } from "../../../../api/pageRequest";
+import { toast } from "react-toastify";
 
 const CreateTable = () => {
   const [columnArr, setColumnArr] = useState([]);
@@ -29,6 +32,7 @@ const CreateTable = () => {
     };
     setColumnArr([...columnArr, data]);
   };
+  const { page, model } = useOutletContext();
   const handleDeleteColumn = (id) => {
     const data = columnArr.filter((item) => item.id !== id);
     setColumnArr(data);
@@ -45,10 +49,43 @@ const CreateTable = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const handlePreview = () => {
-    dispatch(setPreviewTable({ columns: columnArr, rows: [] }));
+    dispatch(setPreviewTable({ columns: columnArr, rows: [], title: title }));
     navigate("/createPage/previewTable");
   };
-  const field = ["id", "firstname", "lastname", "class", "birthday"];
+  const [rows, setRows] = useState(model.name);
+  const [title, setTitle] = useState("");
+
+  const handleChangeTitleTable = (e) => {
+    setTitle(e.target.value);
+  };
+  const handleSaveTable = async () => {
+    try {
+      const update = await updateTablePage(page.id, {
+        table: { title: title, columns: columnArr, rows: `/${rows}` },
+      });
+      toast.success("saved !", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  useEffect(() => {
+    if (!page.table) {
+      setColumnArr([]);
+      setTitle("");
+
+      return;
+    }
+    setColumnArr(page.table?.columns);
+    !page.table.title ? setTitle("") : setTitle(page.table?.title);
+  }, [page]);
   return (
     <div>
       <Typography>Table</Typography>
@@ -65,11 +102,17 @@ const CreateTable = () => {
             minHeight: 400,
           }}
         >
-          <Typography>Rows</Typography>
           <Box mt={2}>
-            <Select fullWidth name="selectRow">
-              <MenuItem value="student">student</MenuItem>
-            </Select>
+            <FormGroup fullWidth>
+              <Box mb={2}>
+                <InputLabel>Title</InputLabel>
+                <Input
+                  name="title"
+                  onChange={handleChangeTitleTable}
+                  value={title}
+                />
+              </Box>
+            </FormGroup>
           </Box>
         </Grid>
         <Grid
@@ -89,7 +132,7 @@ const CreateTable = () => {
                 onDelete={handleDeleteColumn}
                 data={element}
                 position={index + 1}
-                field={field}
+                field={model.attribute}
                 setValue={handleValueColumn}
               />
             </Box>
@@ -97,7 +140,9 @@ const CreateTable = () => {
           {columnArr.length > 0 && (
             <Box>
               <Stack spacing={2} mt={5} direction="row">
-                <Button variant="contained">save</Button>
+                <Button variant="contained" onClick={handleSaveTable}>
+                  save
+                </Button>
                 <Button variant="outlined" onClick={handlePreview}>
                   preview
                 </Button>

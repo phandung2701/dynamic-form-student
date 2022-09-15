@@ -18,7 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -35,8 +35,10 @@ import { convertInputToData } from "../../../../helper/FormBuilder";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { v4 as uuidv4 } from "uuid";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { setPreviewForm } from "../../../../redux/reducers/pageSlice";
+import models from "../../../../data.json";
+import { updateTablePage } from "../../../../api/pageRequest";
 
 const CreateForm = () => {
   const item = [
@@ -117,13 +119,25 @@ const CreateForm = () => {
       color: "error",
     },
   ];
+  const { page, model } = useOutletContext();
+
   const [value, setValue] = React.useState("1");
   const [active, setActive] = React.useState("");
   const [inputActive, setInputActive] = React.useState([]);
   const [data, setData] = React.useState([]);
+  const [attr, setAttr] = React.useState([]);
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+  console.log(page);
+  useEffect(() => {
+    if (!page.form) {
+      setData([]);
+      return;
+    }
+    setData(page.form?.inputField);
+  }, [page]);
+  console.log(data);
 
   const [typeInput, setTypeInput] = React.useState("text");
   const [general, setGeneral] = React.useState({
@@ -185,7 +199,7 @@ const CreateForm = () => {
     setData(newData);
     setTypeInput(e.target.value);
   };
-
+  const [nameForm, setNameForm] = useState();
   const handelOption = (e) => {
     const newData = data.map((item) => {
       if (item.id === inputActive.id) {
@@ -196,11 +210,26 @@ const CreateForm = () => {
     setData(newData);
     setTextArea(e.target.value);
   };
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const handlePreview = () => {
-    dispatch(setPreviewForm(data));
+    dispatch(setPreviewForm({ title: nameForm, data: data, page: page }));
     navigate("/createPage/previewForm");
+  };
+  const handleNameForm = (e) => {
+    setNameForm(e.target.value);
+  };
+
+  const handleSaveForm = async () => {
+    try {
+      const update = await updateTablePage(page.id, {
+        form: { title: nameForm, inputField: data },
+      });
+      console.log(update);
+    } catch (e) {
+      console.log(e);
+    }
   };
   return (
     <Box>
@@ -244,6 +273,12 @@ const CreateForm = () => {
           sx={{ borderRight: 1, padding: 2, borderColor: "grey.400" }}
         >
           <Box>
+            <Box>
+              <FormGroup>
+                <InputLabel>Name Form</InputLabel>
+                <Input onChange={handleNameForm} value={nameForm} />
+              </FormGroup>
+            </Box>
             <NewForm>
               {data.map((input) =>
                 convertInputToData(input, setActive, active)
@@ -252,7 +287,9 @@ const CreateForm = () => {
             {data.length > 0 && (
               <Box>
                 <Stack spacing={2} mt={5} direction="row">
-                  <Button variant="contained">save</Button>
+                  <Button variant="contained" onClick={handleSaveForm}>
+                    save
+                  </Button>
                   <Button variant="outlined" onClick={handlePreview}>
                     preview
                   </Button>
@@ -311,12 +348,18 @@ const CreateForm = () => {
                 </Box>
                 <Divider />
                 <Box mt={2} mb={2}>
-                  <Typography>name</Typography>
-                  <Input
-                    type="text"
-                    value={general.name}
-                    onChange={(e) => handleChangeInputApi(e, "name")}
-                  />
+                  <FormGroup fullWidth>
+                    <InputLabel id="name-input">Name</InputLabel>
+                    <Select
+                      id="name-input"
+                      value={general.name}
+                      onChange={(e) => handleChangeInputApi(e, "name")}
+                    >
+                      {model.attribute.map((item) => (
+                        <MenuItem value={item}>{item}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormGroup>
                 </Box>
                 <Divider />
 

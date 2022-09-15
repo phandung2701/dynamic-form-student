@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Table from "../../common/Table";
 import { useDispatch, useSelector } from "react-redux";
 import axiosClient from "../../api/axiosClient";
@@ -21,6 +21,8 @@ import TabPanel from "@mui/lab/TabPanel";
 import Button from "@mui/material/Button";
 import { InputLabel, MenuItem, Select } from "@material-ui/core";
 import { updateColumnPage } from "../../api/pageRequest";
+import NewForm from "../../common/Form/NewForm";
+import { convertInputToData } from "../../helper/FormBuilder";
 
 const style = {
   position: "absolute",
@@ -35,246 +37,103 @@ const style = {
 };
 
 const StudentList = () => {
-  const [openModalSettingTable, setOpentSettingTable] = useState(false);
-  const [valueTab, setValueTab] = React.useState(1);
   const [studentList, setStudentList] = useState([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const page = useSelector((state) => state.student.page);
-  const handleColumnData = async (data) => {
-    let newColumns;
-    if (valueTab === "addTab" || data.isAdd) {
-      newColumns = [...page.columns, { ...data, isAdd: true }];
-    } else {
-      newColumns = [...page.columns];
-      newColumns[valueTab - 1] = data;
-    }
-    await updateColumnPage(
-      { idPage: page.id, data: { columns: newColumns } },
-      dispatch
-    );
-    await getPageStudent(page.id, dispatch);
-    setOpentSettingTable(false);
-  };
-  const option = page.columns.map((item) => {
-    return { value: item.field, label: item.field };
-  });
+  console.log(page);
+
   const handleCreate = () => {
-    dispatch(setForm({ input: page.inputField, id: page.id }));
+    dispatch(setForm({ form: page.form, id: page.id }));
     navigate(`create`);
   };
-
+  const [rows, setRows] = useState([]);
+  useEffect(() => {
+    if (Object.keys(page).length <= 0 && !page.table) {
+      return;
+    } else {
+      const fetchData = async () => {
+        const row = await axiosClient.get(page?.table?.rows);
+        setRows(row);
+      };
+      fetchData();
+    }
+  }, []);
   const handleDeleteStudent = async () => {
     await axiosClient.delete("/student/delete", { data: studentList });
     await updatePageStudent(page.id, dispatch);
   };
-  const handleCloseSettingTable = () => {
-    setOpentSettingTable(false);
-  };
-  const handleOpenSettingTable = (callback) => {
-    setOpentSettingTable(callback);
-  };
-
-  const handleChange = (event, newValue) => {
-    setValueTab(newValue);
-  };
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  const onSubmit = (value) => console.log(value);
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <h2
-          style={{
-            padding: "30px 0 30px 0",
-            marginRight: "5px",
-          }}
-        >
-          Danh sách sinh viên
-        </h2>
-        <Tooltip title="Thêm Sinh Viên">
-          <IconButton>
-            <ControlPointIcon
-              style={{
-                color: "blue",
-                fontSize: "30px",
-                cursor: "pointer",
-              }}
-              onClick={handleCreate}
-            />
-          </IconButton>
-        </Tooltip>
-      </div>
-      <Table
-        rows={page.rows}
-        columns={page.columns}
-        setList={setStudentList}
-        list={studentList}
-        name={page.name}
-        form={page.inputField}
-        id={page.id}
-        onSetting={handleOpenSettingTable}
-        deleteItem={handleDeleteStudent}
-      />
-      <div>
-        <Modal
-          style={{
-            overflow: "scroll",
-          }}
-          open={openModalSettingTable}
-          onClose={handleCloseSettingTable}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box sx={style}>
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Setting
-            </Typography>
-            <Box sx={{ width: "100%", typography: "body1" }}>
-              <TabContext value={valueTab}>
-                <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-                  <TabList onChange={handleChange}>
-                    {page.columns.map((tab, index) => (
-                      <Tab
-                        icon={tab.isAdd && <ControlPointIcon />}
-                        label={`Column ${index + 1}`}
-                        value={index + 1}
-                        key={index}
-                      />
-                    ))}
-                    <Tab value={"addTab"} icon={<ControlPointIcon />}></Tab>
-                  </TabList>
-                </Box>
-                {page.columns.map((tab, index) => (
-                  <TabPanel value={index + 1} key={index}>
-                    <ColumnForm
-                      data={tab}
-                      option={option}
-                      setColumn={handleColumnData}
-                      selectField={page.selectField}
-                    />
-                  </TabPanel>
-                ))}
-                <TabPanel value={"addTab"}>
-                  <ColumnForm
-                    data={{ field: "", headerName: "", width: "" }}
-                    option={option}
-                    setColumn={handleColumnData}
-                    selectField={page.selectField}
-                  />
-                </TabPanel>
-              </TabContext>
+    <Box>
+      {Object.keys(page).length > 0 && !!page.table ? (
+        <div>
+          <Box>
+            <Box>
+              <Typography variant="h5" align="center">
+                {page.table.title}
+              </Typography>
+            </Box>
+
+            <Box mb={2}>
+              <Button variant="contained" color="success" onClick={handleOpen}>
+                create
+              </Button>
             </Box>
           </Box>
-        </Modal>
-      </div>
-    </div>
-  );
-};
 
-const ColumnForm = ({ data, option, setColumn, selectField }) => {
-  const phoneRegExp = /^[0-9\b]+$/;
-  const validationSchema = yup.object().shape({
-    // field: yup.string("Enter your field").required("field is required"),
-    width: yup
-      .string("Enter your width")
-      .matches(phoneRegExp, "width can only be number")
-      .required("width is required"),
-    headerName: yup
-      .string("Enter your headerName")
-      .required("headerName is required"),
-  });
-  const formik = useFormik({
-    initialValues: data,
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      setColumn(values);
-    },
-  });
-  return (
-    <form onSubmit={formik.handleSubmit}>
-      {Object.keys(data).map((input) =>
-        input === "field" ? (
-          <Box
-            mt={2}
-            mb={2}
-            key={input}
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            <InputLabel
-              id={input}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginRight: "20px",
-                minWidth: "100px",
-              }}
-            >
-              {input}
-            </InputLabel>
-            <Select
-              fullWidth
-              labelId={input}
-              id={input}
-              name={input}
-              value={formik.values[input]}
-              onChange={formik.handleChange}
-            >
-              {selectField.map((item, index) => (
-                <MenuItem key={index} value={item}>
-                  {item}
-                </MenuItem>
-              ))}
-            </Select>
-          </Box>
-        ) : input === "isAdd" ? null : (
-          <Box
-            mb={2}
-            style={{ display: "flex", alignItems: "center" }}
-            key={input}
-          >
-            <InputLabel
-              id={input}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginRight: "20px",
-                minWidth: "100px",
-              }}
-            >
-              {input}
-            </InputLabel>
-            <TextField
-              fullWidth
-              id={input}
-              name={input}
-              type={input}
-              variant="standard"
-              value={formik.values[input]}
-              onChange={formik.handleChange}
-              error={formik.touched[input] && Boolean(formik.errors[input])}
-              helperText={formik.touched[input] && formik.errors[input]}
-            />
-          </Box>
-        )
+          {Object.keys(page.table).length > 0 && (
+            <Box>
+              <Table
+                rows={rows}
+                columns={page?.table?.columns}
+                setList={setStudentList}
+                list={studentList}
+                name={page?.name}
+                form={page?.form}
+                id={page.id}
+                deleteItem={handleDeleteStudent}
+              />
+              <ModalCreate
+                open={open}
+                handleClose={handleClose}
+                data={page?.form?.inputField ?? []}
+                title={page?.form?.title ?? ""}
+                onSubmit={onSubmit}
+              />
+            </Box>
+          )}
+        </div>
+      ) : (
+        <Box>
+          <Typography>chưa có dữ liệu</Typography>
+        </Box>
       )}
-
-      <Box mt={3}>
-        <Button
-          color="primary"
-          variant="contained"
-          type="submit"
-          style={{ marginRight: "10px" }}
-        >
-          Save
-        </Button>
-        <Button variant="outlined">cancel</Button>
-      </Box>
-    </form>
+    </Box>
   );
 };
+const ModalCreate = ({ open, handleClose, data, title, onSubmit }) => {
+  return (
+    <Modal open={open} onClose={handleClose}>
+      <Box sx={style}>
+        <Box mb={2} ml={1}>
+          <Typography variant="h5">{title}</Typography>
+        </Box>
+        {data.length > 0 && (
+          <NewForm onSubmit={onSubmit}>
+            {data.map((input) => convertInputToData(input))}
+            <Button type="submit" variant="contained">
+              Submit
+            </Button>
+          </NewForm>
+        )}
+      </Box>
+    </Modal>
+  );
+};
+
 export default StudentList;

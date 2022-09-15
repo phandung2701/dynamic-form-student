@@ -1,4 +1,4 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { Stack } from "@mui/system";
 import React from "react";
 import { useSelector } from "react-redux";
@@ -8,14 +8,20 @@ import { convertInputToData } from "../../../../helper/FormBuilder";
 
 const PreviewForm = () => {
   const form = useSelector((state) => state.pages.previewForm);
+  const { title, data, page } = form;
   const onSubmit = (value) => console.log(value);
   const navigate = useNavigate();
+  const handelSaveForm = () => {
+    console.log("save");
+  };
   return (
     <Box>
       <Box>
         <Stack spacing={2} mt={2} direction="row">
           <Button onClick={() => navigate(-1)}>Back</Button>
-          <Button variant="contained">Save</Button>
+          <Button variant="contained" onClick={handelSaveForm}>
+            Save
+          </Button>
         </Stack>
       </Box>
       <Box
@@ -27,10 +33,14 @@ const PreviewForm = () => {
           paddingLeft: 5,
         }}
       >
+        <Box mb={2} ml={1}>
+          <Typography variant="h5">{title}</Typography>
+        </Box>
         <NewForm onSubmit={onSubmit}>
-          {form.map((input) => convertInputToData(input))}
-
-          <Button type="submit">Submit</Button>
+          {data.map((input) => convertInputToData(input))}
+          <Button type="submit" variant="contained">
+            Submit
+          </Button>
         </NewForm>
       </Box>
     </Box>

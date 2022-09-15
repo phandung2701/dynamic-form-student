@@ -15,9 +15,6 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route path="student" element={<StudentList />}></Route>
-            <Route path="student/create" element={<Form />} />
-            <Route path="student/update/:id" element={<Form />} />
             <Route path="teacher" element={<StudentList />} />
             <Route path="/createPage" element={<CreatePages />}>
               <Route path="form" element={<CreateForm />} />
@@ -25,6 +22,8 @@ function App() {
             </Route>
             <Route path="/createPage/previewForm" element={<PreviewForm />} />
             <Route path="/createPage/previewTable" element={<PreviewTable />} />
+            <Route path=":slug" element={<StudentList />} />
+            <Route path=":slug/create" element={<Form />} />
           </Route>
         </Routes>
       </BrowserRouter>
