@@ -9,6 +9,7 @@ import {
   Input,
   InputLabel,
   MenuItem,
+  Modal,
   Select,
   Stack,
   Switch,
@@ -37,8 +38,21 @@ import { v4 as uuidv4 } from "uuid";
 import { useDispatch } from "react-redux";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { setPreviewForm } from "../../../../redux/reducers/pageSlice";
-import models from "../../../../data.json";
 import { updateTablePage } from "../../../../api/pageRequest";
+import { toast } from "react-toastify";
+
+const style = {
+  position: "absolute",
+  top: "10%",
+  left: "50%",
+  transform: "translateX(-50%)",
+  width: 1100,
+  bgcolor: "#fff",
+  borderRadius: "5px",
+  border: "1px solid #000",
+  boxShadow: 24,
+  p: 4,
+};
 
 const CreateForm = () => {
   const item = [
@@ -63,6 +77,7 @@ const CreateForm = () => {
         name: "Radio",
         component: "NewRadio",
         options: ["option1", "option2", "option3"],
+        label: "Radio",
       },
     },
     {
@@ -125,19 +140,17 @@ const CreateForm = () => {
   const [active, setActive] = React.useState("");
   const [inputActive, setInputActive] = React.useState([]);
   const [data, setData] = React.useState([]);
-  const [attr, setAttr] = React.useState([]);
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-  console.log(page);
   useEffect(() => {
     if (!page.form) {
       setData([]);
       return;
     }
     setData(page.form?.inputField);
+    setNameForm(page.form?.title);
   }, [page]);
-  console.log(data);
 
   const [typeInput, setTypeInput] = React.useState("text");
   const [general, setGeneral] = React.useState({
@@ -149,7 +162,8 @@ const CreateForm = () => {
   });
   const [textArea, setTextArea] = React.useState("");
   useEffect(() => {
-    if (data.length > 0) {
+    console.log(data);
+    if (data.length > 0 && !!active) {
       const input = data.filter((item) => item.id === active);
 
       const general = {
@@ -173,7 +187,7 @@ const CreateForm = () => {
     }
     setData([...data, option.addInput]);
   };
-  const handleChangeInputApi = (event, type) => {
+  const handleInputApi = (event, type) => {
     const newData = data.map((item) => {
       if (item.id === inputActive.id) {
         if (type === "required") {
@@ -189,7 +203,7 @@ const CreateForm = () => {
       ? setGeneral({ ...general, [type]: event.target.checked })
       : setGeneral({ ...general, [type]: event.target.value });
   };
-  const handleChangeTypeInput = (e) => {
+  const handleTypeInput = (e) => {
     const newData = data.map((item) => {
       if (item.id === inputActive.id) {
         return { ...item, ["type"]: e.target.value };
@@ -199,7 +213,7 @@ const CreateForm = () => {
     setData(newData);
     setTypeInput(e.target.value);
   };
-  const [nameForm, setNameForm] = useState();
+  const [nameForm, setNameForm] = useState("");
   const handelOption = (e) => {
     const newData = data.map((item) => {
       if (item.id === inputActive.id) {
@@ -224,15 +238,33 @@ const CreateForm = () => {
   const handleSaveForm = async () => {
     try {
       const update = await updateTablePage(page.id, {
-        form: { title: nameForm, inputField: data },
+        form: { title: nameForm, inputField: data, model: model.name },
       });
-      console.log(update);
+      toast.success("saved !", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+      });
     } catch (e) {
       console.log(e);
     }
   };
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
   return (
     <Box>
+      <ModalPreviewForm
+        open={open}
+        handleClose={handleClose}
+        data={data}
+        title={nameForm}
+        handelSaveForm={handleSaveForm}
+      />
       <Typography>Create form</Typography>
       <Grid container spacing={2} mt={1}>
         <Grid item xs={1} sx={{ borderRight: 1, borderColor: "grey.400" }}>
@@ -281,7 +313,12 @@ const CreateForm = () => {
             </Box>
             <NewForm>
               {data.map((input) =>
-                convertInputToData(input, setActive, active)
+                convertInputToData[input.component](
+                  input,
+                  null,
+                  setActive,
+                  active
+                )
               )}
             </NewForm>
             {data.length > 0 && (
@@ -290,7 +327,7 @@ const CreateForm = () => {
                   <Button variant="contained" onClick={handleSaveForm}>
                     save
                   </Button>
-                  <Button variant="outlined" onClick={handlePreview}>
+                  <Button variant="outlined" onClick={handleOpen}>
                     preview
                   </Button>
                 </Stack>
@@ -317,7 +354,7 @@ const CreateForm = () => {
                   <Input
                     placeholder="enter your label"
                     value={general.label}
-                    onChange={(e) => handleChangeInputApi(e, "label")}
+                    onChange={(e) => handleInputApi(e, "label")}
                   />
                 </Box>
 
@@ -327,7 +364,7 @@ const CreateForm = () => {
                     <FormControlLabel
                       control={
                         <Switch
-                          onChange={(e) => handleChangeInputApi(e, "required")}
+                          onChange={(e) => handleInputApi(e, "required")}
                           checked={
                             general?.required ? general?.required : false
                           }
@@ -342,7 +379,7 @@ const CreateForm = () => {
                   <Typography>width</Typography>
                   <Input
                     type="number"
-                    onChange={(e) => handleChangeInputApi(e, "width")}
+                    onChange={(e) => handleInputApi(e, "width")}
                     value={general.width}
                   />
                 </Box>
@@ -353,7 +390,7 @@ const CreateForm = () => {
                     <Select
                       id="name-input"
                       value={general.name}
-                      onChange={(e) => handleChangeInputApi(e, "name")}
+                      onChange={(e) => handleInputApi(e, "name")}
                     >
                       {model.attribute.map((item) => (
                         <MenuItem value={item}>{item}</MenuItem>
@@ -369,7 +406,7 @@ const CreateForm = () => {
                       <InputLabel id="type-input">Type</InputLabel>
                       <Select
                         id="type-input"
-                        onChange={handleChangeTypeInput}
+                        onChange={handleTypeInput}
                         label="text"
                         value={typeInput}
                       >
@@ -430,4 +467,36 @@ const CreateForm = () => {
   );
 };
 
+const ModalPreviewForm = ({
+  handelSaveForm,
+  title,
+  data,
+  open,
+  handleClose,
+}) => {
+  return (
+    <Modal open={open} onClose={handleClose}>
+      <Box sx={style}>
+        <Box>
+          <Box mb={2} ml={1}>
+            <Typography variant="h5">{title}</Typography>
+          </Box>
+          <NewForm>
+            {data.map((input) => convertInputToData[input.component](input))}
+            <Button type="submit" variant="contained">
+              Submit
+            </Button>
+          </NewForm>
+        </Box>
+        <Box>
+          <Stack spacing={2} mt={2} direction="row">
+            <Button variant="outlined" onClick={() => handelSaveForm()}>
+              Save
+            </Button>
+          </Stack>
+        </Box>
+      </Box>
+    </Modal>
+  );
+};
 export default CreateForm;

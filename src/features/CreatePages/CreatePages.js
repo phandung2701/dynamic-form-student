@@ -5,7 +5,7 @@ import SpeedDialIcon from "@mui/material/SpeedDialIcon";
 import SpeedDialAction from "@mui/material/SpeedDialAction";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
 import DynamicFormIcon from "@mui/icons-material/DynamicForm";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import TextField from "@mui/material/TextField";
 import {
   Button,
@@ -35,7 +35,19 @@ const CreatePages = () => {
   const [namePage, setNamePage] = React.useState("");
   const [error, setError] = React.useState(false);
   const [model, setModel] = React.useState("");
+  const { search } = useLocation();
+  React.useEffect(() => {
+    if (!!search) {
+      setChoosePage(search.split("=")[1]);
 
+      const filter = page.filter((item) => item.id === search.split("=")[1])[0];
+      if (!filter.form) {
+        setModel(" ");
+        return;
+      }
+      setModel(models.filter((item) => item.name === filter.form.model)[0].id);
+    }
+  }, []);
   const handleCreate = (param) => {
     if (model.trim() === "") {
       toast.warning("you need to select the model first", {
@@ -54,6 +66,13 @@ const CreatePages = () => {
 
   const handleChangePage = (e) => {
     setChoosePage(e.target.value);
+
+    const filter = page.filter((item) => item.id === e.target.value)[0];
+    if (!filter.form) {
+      setModel(" ");
+      return;
+    }
+    setModel(models.filter((item) => item.name === filter.form.model)[0].id);
   };
   const handleNamePage = (e) => {
     setError(false);
@@ -84,7 +103,7 @@ const CreatePages = () => {
       console.log(e);
     }
   };
-  console.log(model, choosePage);
+
   const handelShowCreatePage = () => {
     navigate("/createPage");
     setShowCreatePage(true);

@@ -6,7 +6,7 @@ const studentSlice = createSlice({
     page: {},
   },
   reducers: {
-    getPage: (state, action) => {
+    getPageItem: (state, action) => {
       return { ...state, page: action.payload };
     },
   },
@@ -14,4 +14,4 @@ const studentSlice = createSlice({
 });
 
 export const { reducer: studentReducer } = studentSlice;
-export const { getPage } = studentSlice.actions;
+export const { getPageItem } = studentSlice.actions;

@@ -1,9 +1,9 @@
-import { getPage } from "../redux/reducers/studentSlice";
+import { getPageItem } from "../redux/reducers/studentSlice";
 import axiosClient from "./axiosClient";
 
 export const getPageStudent = async (id, dispatch) => {
   const page = await axiosClient.get(`/page/${id}`);
-  dispatch(getPage(page));
+  dispatch(getPageItem(page));
 };
 
 export const createStudent = async (data, dispatch, id) => {
@@ -11,7 +11,7 @@ export const createStudent = async (data, dispatch, id) => {
 
   const page = await axiosClient.get(`/page/${id}`);
 
-  dispatch(getPage(page));
+  dispatch(getPageItem(page));
 };
 
 // export const deleteStudent = async (data, id, dispatch) => {
@@ -29,7 +29,7 @@ export const updatePageStudent = async (id, dispatch) => {
     rows: studentList,
   });
 
-  dispatch(getPage(updatePage));
+  dispatch(getPageItem(updatePage));
 };
 
 export const getInfo = async (param) => {

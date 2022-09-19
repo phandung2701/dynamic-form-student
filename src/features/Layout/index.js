@@ -25,6 +25,7 @@ import MoveToInboxIcon from "@mui/icons-material/MoveToInbox";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import MailIcon from "@mui/icons-material/Mail";
 import { useSelector } from "react-redux";
+import { ToastContainer } from "react-toastify";
 
 const drawerWidth = 240;
 
@@ -105,25 +106,30 @@ const Layout = () => {
   const handleDrawerClose = () => {
     setOpen(false);
   };
-  let data = [];
+
   const page = useSelector((state) => state.pages.page);
   const dispatch = useDispatch();
   const handleRedirect = async (item) => {
     try {
       await getPageStudent(item.id, dispatch);
+
       navigate(item.name);
     } catch (e) {
       console.log(e);
     }
   };
-  const handleCreatePage = (text) => {
+  const handleCreatePage = async (text) => {
+    await getLayoutPage(dispatch);
     if (text === "Create Page") {
       navigate("/createPage");
+    }
+    if (text === "Page List") {
+      navigate("/pagelist");
     }
   };
   useEffect(() => {
     const getLayout = async () => {
-      data = await getLayoutPage(dispatch);
+      await getLayoutPage(dispatch);
     };
     getLayout();
   }, []);
@@ -131,6 +137,7 @@ const Layout = () => {
     <Fragment>
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
+        <ToastContainer />
         <AppBar position="fixed" open={open}>
           <Toolbar>
             <IconButton
@@ -196,7 +203,7 @@ const Layout = () => {
           </List>
           <Divider />
           <List>
-            {["Create Page"].map((text, index) => (
+            {["Create Page", "Page List"].map((text, index) => (
               <ListItem key={text} disablePadding sx={{ display: "block" }}>
                 <ListItemButton
                   sx={{

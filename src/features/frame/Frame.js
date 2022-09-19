@@ -2,27 +2,18 @@ import React, { useEffect, useState } from "react";
 import Table from "../../common/Table";
 import { useDispatch, useSelector } from "react-redux";
 import axiosClient from "../../api/axiosClient";
-import { getPageStudent, updatePageStudent } from "../../api/studentRequest";
-import ControlPointIcon from "@mui/icons-material/ControlPoint";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import { useNavigate } from "react-router-dom";
-import { setForm } from "../../redux/reducers/pageSlice";
 import { Modal } from "@material-ui/core";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import { useFormik } from "formik";
-import * as yup from "yup";
-import Tab from "@mui/material/Tab";
-import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
-import TabPanel from "@mui/lab/TabPanel";
 import Button from "@mui/material/Button";
-import { InputLabel, MenuItem, Select } from "@material-ui/core";
-import { updateColumnPage } from "../../api/pageRequest";
 import NewForm from "../../common/Form/NewForm";
 import { convertInputToData } from "../../helper/FormBuilder";
+import {
+  createSchema,
+  getPageShema,
+  updateSchema,
+} from "../../api/pageRequest";
+import { toast } from "react-toastify";
 
 const style = {
   position: "absolute",
@@ -37,17 +28,11 @@ const style = {
 };
 
 const StudentList = () => {
-  const [studentList, setStudentList] = useState([]);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const [valueInput, setValueInput] = useState(null);
 
   const page = useSelector((state) => state.student.page);
-  console.log(page);
 
-  const handleCreate = () => {
-    dispatch(setForm({ form: page.form, id: page.id }));
-    navigate(`create`);
-  };
   const [rows, setRows] = useState([]);
   useEffect(() => {
     if (Object.keys(page).length <= 0 && !page.table) {
@@ -59,15 +44,48 @@ const StudentList = () => {
       };
       fetchData();
     }
-  }, []);
-  const handleDeleteStudent = async () => {
-    await axiosClient.delete("/student/delete", { data: studentList });
-    await updatePageStudent(page.id, dispatch);
-  };
+  }, [page]);
+
   const [open, setOpen] = React.useState(false);
+  const [isCreate, setIsCreate] = useState(true);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  const onSubmit = (value) => console.log(value);
+  const handleCreate = () => {
+    handleOpen();
+    setValueInput(null);
+    setIsCreate(true);
+  };
+  const onSubmit = async (value) => {
+    try {
+      if (isCreate) {
+        await createSchema(`/${page.form.model}`, value);
+        toast.success("created !", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+        });
+      } else {
+        await updateSchema(`/${page.form.model}/${valueInput.id}`, value);
+        toast.success("updated !", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+      await getPageShema(page.id, dispatch);
+      handleClose();
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <Box>
       {Object.keys(page).length > 0 && !!page.table ? (
@@ -80,7 +98,11 @@ const StudentList = () => {
             </Box>
 
             <Box mb={2}>
-              <Button variant="contained" color="success" onClick={handleOpen}>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleCreate}
+              >
                 create
               </Button>
             </Box>
@@ -91,19 +113,22 @@ const StudentList = () => {
               <Table
                 rows={rows}
                 columns={page?.table?.columns}
-                setList={setStudentList}
-                list={studentList}
                 name={page?.name}
                 form={page?.form}
-                id={page.id}
-                deleteItem={handleDeleteStudent}
+                idPage={page.id}
+                setValueInput={setValueInput}
+                open={setOpen}
+                setIsCreate={setIsCreate}
+                model={page?.table?.rows}
               />
               <ModalCreate
                 open={open}
                 handleClose={handleClose}
                 data={page?.form?.inputField ?? []}
-                title={page?.form?.title ?? ""}
+                title={isCreate ? page?.form?.title ?? "" : "update"}
                 onSubmit={onSubmit}
+                value={valueInput}
+                isCreate={isCreate}
               />
             </Box>
           )}
@@ -116,7 +141,15 @@ const StudentList = () => {
     </Box>
   );
 };
-const ModalCreate = ({ open, handleClose, data, title, onSubmit }) => {
+const ModalCreate = ({
+  open,
+  handleClose,
+  data,
+  title,
+  onSubmit,
+  value,
+  isCreate,
+}) => {
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
@@ -125,9 +158,12 @@ const ModalCreate = ({ open, handleClose, data, title, onSubmit }) => {
         </Box>
         {data.length > 0 && (
           <NewForm onSubmit={onSubmit}>
-            {data.map((input) => convertInputToData(input))}
+            {data.map((input) =>
+              convertInputToData[input.component](input, value)
+            )}
+
             <Button type="submit" variant="contained">
-              Submit
+              {isCreate ? "Create" : "Update"}
             </Button>
           </NewForm>
         )}

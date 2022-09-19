@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Checkbox,
@@ -25,13 +25,21 @@ export function NewInput({
   setError,
   active,
   id,
+  value,
   setActive,
   required,
   ...rest
 }) {
   const [errorInput, setErrorInput] = useState(false);
+  const [valueInput, setValueInput] = useState("");
+  useEffect(() => {
+    if (!!value) {
+      setValueInput(value[name]);
+      setValue(name, value[name]);
+    }
+  }, []);
 
-  const handleChangeValueInput = (e) => {
+  const handleValueInput = (e) => {
     if (e.target.value.trim() === "" && required) {
       setError(name, {
         type: "manual",
@@ -43,6 +51,7 @@ export function NewInput({
       setValue(name, e.target.value, { shouldValidate: true });
       setErrorInput(false);
     }
+    setValueInput(e.target.value);
   };
   const handleActiveInput = () => {
     if (!setActive) {
@@ -65,9 +74,10 @@ export function NewInput({
         error={errorInput}
         sx={{ width: 500 }}
         label="Label"
-        {...register(name, { required: true })}
+        value={valueInput}
+        {...register(name)}
         {...rest}
-        onChange={handleChangeValueInput}
+        onChange={handleValueInput}
         helperText={errors[name] && errors[name].message}
       />
     </Box>
@@ -80,16 +90,32 @@ export function NewSelect({
   name,
   active,
   id,
+  value,
+  setValue,
   label,
   setActive,
   required,
   ...rest
 }) {
+  const [valueSelect, setValueSelect] = useState("");
   const handleActiveInput = () => {
     if (!setActive) {
       return;
     }
     setActive(id);
+  };
+  useEffect(() => {
+    const wrap = () => {
+      if (!!value) {
+        setValueSelect(value[name]);
+        setValue(name, value[name]);
+      }
+    };
+    wrap();
+  }, [value]);
+  const handleValueSelect = (e) => {
+    setValueSelect(e.target.value);
+    setValue(name, e.target.value);
   };
   return (
     <Box
@@ -104,7 +130,13 @@ export function NewSelect({
     >
       <FormControl sx={{ width: 500 }}>
         <InputLabel id={id}>{label}</InputLabel>
-        <Select {...register(name, required)} {...rest} label={label}>
+        <Select
+          {...register(name, required)}
+          {...rest}
+          label={label}
+          value={valueSelect}
+          onChange={handleValueSelect}
+        >
           {options.map((value) => (
             <MenuItem key={value} value={value}>
               {value}
@@ -130,14 +162,15 @@ export function NewCheckBox({
 }) {
   const [valueChecked, setValueChecked] = useState([]);
   const handleChangeCheckBox = (event, option) => {
-    if (valueChecked.includes(event.target.value)) {
-      const data = valueChecked.filter((item) => item !== event.target.value);
-      setValueChecked(data);
+    console.log(event.target.value, option);
+    if (valueChecked.includes(option)) {
+      const data = valueChecked.filter((item) => item !== option);
       setValue(name, data);
+      setValueChecked(data);
     } else {
-      const data = [...valueChecked, event.target.value];
-      setValueChecked(data);
+      const data = [...valueChecked, option];
       setValue(name, data);
+      setValueChecked(data);
     }
   };
   const handleActiveInput = () => {
@@ -181,13 +214,22 @@ export function NewRadio({
   setActive,
   name,
   id,
+  value,
   label,
   required,
   ...rest
 }) {
   const handleChangeRadio = (e) => {
     setValue(name, e.target.value);
+    setValueRadio(e.target.value);
   };
+  const [valueRadio, setValueRadio] = useState("");
+  useEffect(() => {
+    if (!!value) {
+      setValueRadio(value[name]);
+      setValue(name, value[name]);
+    }
+  }, []);
   const handleActiveInput = () => {
     if (!setActive) {
       return;
@@ -205,17 +247,15 @@ export function NewRadio({
           : null
       }
     >
-      <FormGroup {...register(name, required)}>
-        <FormLabel id={"radio-buttons-group"}>{label}</FormLabel>
-
-        <RadioGroup name="radio-buttons-group">
-          {options.map((value) => (
+      <FormGroup {...register(name)}>
+        <FormLabel>{label}</FormLabel>
+        <RadioGroup value={valueRadio} onChange={handleChangeRadio}>
+          {options.map((option) => (
             <FormControlLabel
               control={<Radio />}
-              label={value}
-              value={value}
-              key={value}
-              onChange={handleChangeRadio}
+              label={option}
+              value={option}
+              key={option}
               {...rest}
             />
           ))}
@@ -231,12 +271,20 @@ export const NewDateSpicker = ({
   name,
   id,
   label,
+  value,
   active,
   setActive,
   required,
   ...rest
 }) => {
   const [date, setDate] = React.useState(null);
+  useEffect(() => {
+    if (!!value) {
+      setValue(name, new Date(value[name]).toLocaleDateString());
+      setDate(new Date(value[name]).toLocaleDateString());
+    }
+  }, []);
+
   const handleDate = (value) => {
     setDate(new Date(value).toLocaleDateString());
     setValue(name, new Date(value).toLocaleDateString());
@@ -260,7 +308,7 @@ export const NewDateSpicker = ({
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DatePicker
-          {...register(name, required)}
+          {...register(name)}
           {...rest}
           label={label}
           value={date}

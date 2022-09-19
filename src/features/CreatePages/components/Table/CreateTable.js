@@ -8,6 +8,7 @@ import {
   FormGroup,
   InputLabel,
   Input,
+  Modal,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useEffect, useState } from "react";
@@ -16,10 +17,23 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { v4 as uuidv4 } from "uuid";
 import { useDispatch } from "react-redux";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { setPreviewTable } from "../../../../redux/reducers/pageSlice";
 
 import { updateTablePage } from "../../../../api/pageRequest";
 import { toast } from "react-toastify";
+import { DataGrid } from "@mui/x-data-grid";
+
+const style = {
+  position: "fixed",
+  top: "10%",
+  left: "50%",
+  transform: "translateX(-50%)",
+  width: 1100,
+  borderRadius: "5px",
+  bgcolor: "#fff",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+};
 
 const CreateTable = () => {
   const [columnArr, setColumnArr] = useState([]);
@@ -27,7 +41,7 @@ const CreateTable = () => {
     const data = {
       id: uuidv4(),
       field: "",
-      width: 0,
+      width: 100,
       headerName: "",
     };
     setColumnArr([...columnArr, data]);
@@ -46,12 +60,7 @@ const CreateTable = () => {
     });
     setColumnArr(data);
   };
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const handlePreview = () => {
-    dispatch(setPreviewTable({ columns: columnArr, rows: [], title: title }));
-    navigate("/createPage/previewTable");
-  };
+
   const [rows, setRows] = useState(model.name);
   const [title, setTitle] = useState("");
 
@@ -60,7 +69,7 @@ const CreateTable = () => {
   };
   const handleSaveTable = async () => {
     try {
-      const update = await updateTablePage(page.id, {
+      await updateTablePage(page.id, {
         table: { title: title, columns: columnArr, rows: `/${rows}` },
       });
       toast.success("saved !", {
@@ -80,14 +89,24 @@ const CreateTable = () => {
     if (!page.table) {
       setColumnArr([]);
       setTitle("");
-
       return;
     }
     setColumnArr(page.table?.columns);
     !page.table.title ? setTitle("") : setTitle(page.table?.title);
   }, [page]);
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
   return (
     <div>
+      <ModalPreviewTable
+        open={open}
+        handleClose={handleClose}
+        handleSaveTable={handleSaveTable}
+        rows={[]}
+        columns={columnArr}
+        title={title}
+      />
       <Typography>Table</Typography>
       <Box mt={2} mb={2}></Box>
 
@@ -143,7 +162,7 @@ const CreateTable = () => {
                 <Button variant="contained" onClick={handleSaveTable}>
                   save
                 </Button>
-                <Button variant="outlined" onClick={handlePreview}>
+                <Button variant="outlined" onClick={handleOpen}>
                   preview
                 </Button>
               </Stack>
@@ -167,6 +186,36 @@ const CreateTable = () => {
         </Grid>
       </Grid>
     </div>
+  );
+};
+
+const ModalPreviewTable = ({
+  rows,
+  columns,
+  handleSaveTable,
+  open,
+  handleClose,
+  title,
+}) => {
+  return (
+    <Modal open={open} onClose={handleClose}>
+      <Box sx={style}>
+        <Box mb={2}>
+          <Button onClick={() => handleSaveTable()}>save</Button>
+        </Box>
+        <Box mb={4} sx={{ textAlign: "center" }}>
+          <Typography variant="h4">{title}</Typography>
+        </Box>
+        <div style={{ height: 500, width: "100%" }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            pageSize={7}
+            autoHeight={true}
+          />
+        </div>
+      </Box>
+    </Modal>
   );
 };
 
